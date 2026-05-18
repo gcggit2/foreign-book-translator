@@ -2,7 +2,8 @@
 
 import streamlit as st
 
-from pages.shared_state import delete_from_env, init_state, save_to_env
+from pages.shared_state import init_state, is_api_key_from_secrets
+from ui.auth import require_auth
 from ui.theme import apply_theme, badge, render_top_nav, section_label
 
 
@@ -12,6 +13,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
 )
 apply_theme()
+require_auth()
 init_state()
 render_top_nav(active="settings")
 
@@ -19,53 +21,30 @@ render_top_nav(active="settings")
 st.markdown("# 設定")
 st.markdown(
     "<p style='color:#64748B;font-size:14px;margin-top:6px;'>"
-    "APIキー、翻訳スタイル、性能の設定"
+    "翻訳スタイル・性能の設定"
     "</p>",
     unsafe_allow_html=True,
 )
 
 
-# ====== Gemini APIキー ======
+# ====== APIキー情報（読み取り専用） ======
 section_label("Gemini API キー")
 
 if st.session_state.gemini_api_key:
-    st.markdown(badge("設定済", "success"), unsafe_allow_html=True)
+    if is_api_key_from_secrets():
+        st.markdown(badge("Streamlit Secrets で設定済", "success"), unsafe_allow_html=True)
+        st.caption(
+            "APIキーは Streamlit Cloud の Secrets で管理されています。"
+            "変更する場合は管理者が `share.streamlit.io` の Settings → Secrets で書き換えてください。"
+        )
+    else:
+        st.markdown(badge("ローカル設定で設定済", "info"), unsafe_allow_html=True)
+        st.caption("ローカル環境変数または .env ファイルから読み込まれています。")
 else:
-    st.markdown(badge("未設定", "warning"), unsafe_allow_html=True)
-
-st.write("")
-st.caption(
-    "Google AI Studio で取得したAPIキーを入力。"
-    "「保存」を押すと `.env` ファイルに保存され、次回起動時も自動読込されます。"
-)
-st.markdown("[Google AI Studio でAPIキーを取得](https://aistudio.google.com/apikey)")
-
-api_key = st.text_input(
-    "APIキー",
-    value=st.session_state.gemini_api_key,
-    type="password",
-    placeholder="AIza...",
-    label_visibility="collapsed",
-)
-
-col_save, col_clear, _ = st.columns([1, 1, 2])
-with col_save:
-    if st.button("保存", type="primary", use_container_width=True):
-        if api_key:
-            st.session_state.gemini_api_key = api_key
-            save_to_env("GEMINI_API_KEY", api_key)
-            st.success("APIキーを `.env` に保存しました")
-        else:
-            st.error("APIキーが入力されていません")
-with col_clear:
-    if st.button("クリア", use_container_width=True):
-        st.session_state.gemini_api_key = ""
-        delete_from_env("GEMINI_API_KEY")
-        st.success("クリアしました")
-        st.rerun()
-
-if api_key != st.session_state.gemini_api_key:
-    st.session_state.gemini_api_key = api_key
+    st.markdown(badge("未設定", "danger"), unsafe_allow_html=True)
+    st.caption(
+        "APIキーが未設定です。管理者にお問い合わせください。"
+    )
 
 st.divider()
 
@@ -88,7 +67,7 @@ st.divider()
 # ====== Gemini API階層 ======
 section_label("Gemini API 階層")
 st.caption(
-    "無料枠は1分5リクエストの制限あり。月数百円で有料枠に切り替えると並列5で高速化されます。"
+    "無料枠は1分5リクエストの制限あり。有料枠なら並列5で高速化されます。"
 )
 
 current_label = (
@@ -108,16 +87,6 @@ tier = st.radio(
     label_visibility="collapsed",
 )
 st.session_state.parallel_count = 1 if tier.startswith("無料") else 5
-
-with st.expander("有料枠への切替方法"):
-    st.markdown("""
-1. [Google Cloud Console](https://console.cloud.google.com/billing) を開く
-2. APIキーを発行したプロジェクトに **お支払い情報** を追加
-3. 「**予算とアラート**」で月額上限（例: 3,000円）を設定
-4. このページで「**有料枠**」を選択
-
-→ 1分5リクエストの制限が消え、章ごとに5並列で高速化（200ページで5〜10分程度）
-""")
 
 st.divider()
 

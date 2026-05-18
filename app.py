@@ -14,6 +14,7 @@ from core.pdf_generator import generate_pdf
 from core.translator import translate_pages
 from pages.shared_state import init_state
 from storage import jobs
+from ui.auth import require_auth
 from ui.theme import apply_theme, render_flow, render_top_nav, section_label
 
 
@@ -25,6 +26,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
 )
 apply_theme()
+require_auth()
 init_state()
 render_top_nav(active="translate")
 
@@ -48,8 +50,10 @@ st.markdown(
 
 # ===== APIキー未設定なら警告 =====
 if not st.session_state.gemini_api_key:
-    st.warning("Gemini APIキーが未設定です。上部メニューの「設定」から登録してください。")
-    st.page_link("pages/1_⚙️_設定.py", label="設定ページを開く")
+    st.error(
+        "Gemini APIキーが未設定です。管理者に連絡してください。"
+        "（管理者は Streamlit Cloud の Secrets で GEMINI_API_KEY を設定する必要があります）"
+    )
     st.stop()
 
 

@@ -6,6 +6,7 @@ import streamlit as st
 
 from pages.shared_state import init_state
 from storage import jobs
+from ui.auth import require_auth
 from ui.theme import apply_theme, badge, render_top_nav, section_label
 
 
@@ -15,6 +16,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
 )
 apply_theme()
+require_auth()
 init_state()
 render_top_nav(active="history")
 
