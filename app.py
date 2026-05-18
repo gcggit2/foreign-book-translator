@@ -74,17 +74,6 @@ uploaded = st.file_uploader(
     label_visibility="collapsed",
 )
 
-if uploaded:
-    file_kb = len(uploaded.getbuffer()) / 1024
-    size_str = f"{file_kb / 1024:.1f} MB" if file_kb > 1024 else f"{file_kb:.0f} KB"
-    st.markdown(
-        f"<div style='color:#1F2937;font-size:13px;margin:10px 0 16px;'>"
-        f"選択中: <strong>{uploaded.name}</strong> "
-        f"<span style='color:#94A3B8;'>（{size_str}）</span>"
-        "</div>",
-        unsafe_allow_html=True,
-    )
-
 
 # ===== 詳細設定 =====
 section_label("Step 2 │ オプション（任意）")

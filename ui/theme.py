@@ -254,8 +254,12 @@ hr.nav-divider {
 [data-testid="stFileUploader"] section:hover {
     border-color: #0B1F3A !important;
 }
-/* デフォルトの「Browse files」ボタンのテキストを差し替え */
-[data-testid="stFileUploaderDropzone"] button {
+/* ファイル選択後はドロップゾーン全体を非表示（重複ボタン解消） */
+[data-testid="stFileUploader"]:has([data-testid="stFileUploaderFile"]) [data-testid="stFileUploaderDropzone"] {
+    display: none !important;
+}
+/* デフォルトの「Browse files」ボタンのテキストを差し替え（最初のボタンのみ） */
+[data-testid="stFileUploaderDropzone"] > button:first-of-type {
     background: #0B1F3A !important;
     color: transparent !important;
     border: 1px solid #0B1F3A !important;
@@ -264,7 +268,7 @@ hr.nav-divider {
     min-width: 200px !important;
     height: 40px !important;
 }
-[data-testid="stFileUploaderDropzone"] button::after {
+[data-testid="stFileUploaderDropzone"] > button:first-of-type::after {
     content: "洋書PDFを選択";
     color: white;
     position: absolute;
@@ -297,6 +301,13 @@ hr.nav-divider {
     color: #64748B;
     font-size: 12px;
     margin-top: 4px;
+}
+/* 選択ファイルの表示を整える */
+[data-testid="stFileUploaderFile"] {
+    background: white !important;
+    border: 1px solid #D1D5DB !important;
+    border-radius: 2px !important;
+    padding: 12px 14px !important;
 }
 
 /* ============================================================
