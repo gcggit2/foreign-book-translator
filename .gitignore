@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.env
+
+# Streamlit
+.streamlit/secrets.toml
+
+# データ（実行時生成）
+data/
+!data/.gitkeep
+
+# 一時ファイル
+*.tmp
+*.log
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+
+# ローカル起動スクリプト（クラウドでは不要）
+起動.command
+停止.command

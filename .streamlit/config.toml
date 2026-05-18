@@ -1,0 +1,10 @@
+[theme]
+primaryColor = "#2E86AB"
+backgroundColor = "#FFFFFF"
+secondaryBackgroundColor = "#F0F2F6"
+textColor = "#262730"
+font = "sans serif"
+
+[server]
+# アップロード上限（MB）。書籍PDFは数百MBになることもあるため大きめに設定
+maxUploadSize = 500
