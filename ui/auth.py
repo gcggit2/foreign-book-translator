@@ -15,7 +15,6 @@ SESSION_KEY = "auth_passed"
 def _get_expected_password() -> str | None:
     """Streamlit Secrets からパスワードを取得。未設定なら None"""
     try:
-        # st.secrets はローカルで .streamlit/secrets.toml がなければ例外を投げる
         return st.secrets.get("APP_PASSWORD", None)
     except Exception:
         return None
@@ -33,62 +32,86 @@ def require_auth():
     if st.session_state.get(SESSION_KEY):
         return
 
-    # === パスワード入力画面 ===
     _render_password_form(expected)
     st.stop()
 
 
 def _render_password_form(expected: str):
-    # 中央寄せの簡素なパスワード入力画面
+    # 認証画面専用CSS（メインコンテナを狭く中央寄せに）
     st.markdown(
         """
         <style>
-        /* 認証画面では nav 非表示にしてシンプルに */
-        .auth-wrapper {
-            max-width: 360px;
-            margin: 120px auto 0;
-            padding: 32px 28px;
-            border: 1px solid #D1D5DB;
-            border-radius: 4px;
-            background: white;
+        /* 認証画面ではメインコンテナを狭くしてカード風に */
+        .main .block-container {
+            max-width: 420px !important;
+            padding-top: 14vh !important;
         }
-        .auth-title {
-            font-size: 18px;
+        .auth-card-top {
+            border: 1px solid #D1D5DB;
+            border-bottom: none;
+            border-radius: 4px 4px 0 0;
+            background: white;
+            padding: 28px 28px 18px;
+        }
+        .auth-card-title {
+            font-size: 19px;
             font-weight: 700;
             color: #0B1F3A;
-            margin-bottom: 6px;
+            margin: 0 0 4px 0;
         }
-        .auth-sub {
+        .auth-card-sub {
             font-size: 13px;
             color: #64748B;
-            margin-bottom: 20px;
+            margin: 0;
         }
+        .auth-card-body {
+            border: 1px solid #D1D5DB;
+            border-top: none;
+            border-radius: 0 0 4px 4px;
+            background: white;
+            padding: 6px 28px 24px;
+            margin-bottom: 0;
+        }
+        /* 入力欄の余白調整 */
+        .auth-card-body [data-testid="stTextInput"] {
+            margin-bottom: 12px;
+        }
+        .auth-card-body [data-testid="stTextInput"] input {
+            border-radius: 2px !important;
+        }
+        /* このページではトップナビとフッターも非表示にしてシンプルに */
+        hr.nav-divider, .top-nav-logo { display: none !important; }
         </style>
         """,
         unsafe_allow_html=True,
     )
 
+    # カード上部（タイトル）
     st.markdown(
-        '<div class="auth-wrapper">'
-        '<div class="auth-title">洋書翻訳システム</div>'
-        '<div class="auth-sub">利用にはパスワードが必要です</div>'
+        '<div class="auth-card-top">'
+        '<p class="auth-card-title">洋書翻訳システム</p>'
+        '<p class="auth-card-sub">利用にはパスワードが必要です</p>'
         '</div>',
         unsafe_allow_html=True,
     )
 
-    # 入力欄
-    cols = st.columns([1, 6, 1])
-    with cols[1]:
-        password = st.text_input(
-            "パスワード",
-            type="password",
-            label_visibility="collapsed",
-            placeholder="パスワード",
-            key="auth_input",
-        )
-        if st.button("ログイン", type="primary", use_container_width=True, key="auth_btn"):
-            if password == expected:
-                st.session_state[SESSION_KEY] = True
-                st.rerun()
-            else:
-                st.error("パスワードが正しくありません")
+    # カード下部（入力欄＋ボタン）
+    st.markdown('<div class="auth-card-body">', unsafe_allow_html=True)
+
+    password = st.text_input(
+        "パスワード",
+        type="password",
+        label_visibility="collapsed",
+        placeholder="パスワードを入力",
+        key="auth_input",
+    )
+    submitted = st.button("ログイン", type="primary", use_container_width=True, key="auth_btn")
+
+    st.markdown('</div>', unsafe_allow_html=True)
+
+    if submitted:
+        if password == expected:
+            st.session_state[SESSION_KEY] = True
+            st.rerun()
+        else:
+            st.error("パスワードが正しくありません")
