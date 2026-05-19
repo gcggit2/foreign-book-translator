@@ -186,17 +186,14 @@ if start and uploaded:
 
         st.divider()
 
-        translated_count = sum(1 for p in translated_pages if not p.skipped)
-
         st.markdown(
-            f"<div style='background:#ECFDF5;border:1px solid #A7F3D0;"
-            f"border-left:3px solid #047857;border-radius:2px;"
-            f"padding:18px 20px;margin:16px 0;'>"
-            f"<div style='font-weight:700;color:#065F46;font-size:15px;'>翻訳完了</div>"
-            f"<div style='margin-top:6px;color:#047857;font-size:13px;'>"
-            f"著作権・索引等を除いた {translated_count} ページを翻訳しました"
-            f"（全 {total_pages} ページ）"
-            f"</div></div>",
+            "<div style='background:#ECFDF5;border:1px solid #A7F3D0;"
+            "border-left:3px solid #047857;border-radius:2px;"
+            "padding:18px 20px;margin:16px 0;'>"
+            "<div style='font-weight:700;color:#065F46;font-size:15px;'>翻訳完了</div>"
+            "<div style='margin-top:6px;color:#047857;font-size:13px;'>"
+            "下のボタンから日本語訳PDFをダウンロードしてください。"
+            "</div></div>",
             unsafe_allow_html=True,
         )
 
