@@ -110,10 +110,6 @@ if start and uploaded:
     job_id = jobs.create_job(uploaded.name, book_title, str(source_path))
 
     st.divider()
-    render_flow(
-        active_step=2,
-        steps=["アップロード", "翻訳実行", "PDF取得"],
-    )
 
     progress = st.progress(0, text="開始しています…")
     status_box = st.empty()
@@ -189,10 +185,6 @@ if start and uploaded:
         status_box.empty()
 
         st.divider()
-        render_flow(
-            active_step=3,
-            steps=["アップロード", "翻訳実行", "PDF取得"],
-        )
 
         skipped_count = sum(1 for p in translated_pages if p.skipped)
         translated_count = sum(1 for p in translated_pages if not p.skipped)
