@@ -84,12 +84,24 @@ h3 { font-size: 16px !important; }
 /* ============================================================
    トップナビゲーション
    ============================================================ */
+.top-nav-logo-link {
+    text-decoration: none !important;
+    color: inherit;
+    cursor: pointer;
+}
+.top-nav-logo-link:hover .top-nav-logo {
+    color: #1A3A6C;
+}
+.top-nav-logo-link:hover .top-nav-logo .sub {
+    color: #1A3A6C;
+}
 .top-nav-logo {
     font-size: 17px;
     font-weight: 700;
     color: #0B1F3A;
     letter-spacing: -0.01em;
     padding-top: 8px;
+    transition: color 0.15s ease;
 }
 .top-nav-logo .sub {
     font-size: 11px;
@@ -98,6 +110,7 @@ h3 { font-size: 16px !important; }
     letter-spacing: 0.08em;
     margin-left: 8px;
     text-transform: uppercase;
+    transition: color 0.15s ease;
 }
 [data-testid="stPageLink"] {
     border-radius: 0 !important;
@@ -368,9 +381,10 @@ def render_top_nav(active: str = "translate"):
     cols = st.columns([4, 1, 1, 1])
     with cols[0]:
         st.markdown(
+            '<a href="/" target="_self" class="top-nav-logo-link">'
             '<div class="top-nav-logo">'
             '洋書翻訳システム<span class="sub">Translation Workflow</span>'
-            '</div>',
+            '</div></a>',
             unsafe_allow_html=True,
         )
     with cols[1]:
