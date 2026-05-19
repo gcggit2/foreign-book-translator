@@ -372,8 +372,10 @@ hr { margin: 1.5rem 0 !important; border-color: #E5E7EB !important; }
 
 
 def apply_theme():
-    """ページの先頭で呼ぶ。CSS適用"""
+    """ページの先頭で呼ぶ。CSS適用＋キーボードショートカット無効化"""
     st.markdown(GLOBAL_CSS, unsafe_allow_html=True)
+    from ui.keyboard import disable_streamlit_shortcuts
+    disable_streamlit_shortcuts()
 
 
 def render_top_nav(active: str = "translate"):

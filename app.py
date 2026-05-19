@@ -186,7 +186,6 @@ if start and uploaded:
 
         st.divider()
 
-        skipped_count = sum(1 for p in translated_pages if p.skipped)
         translated_count = sum(1 for p in translated_pages if not p.skipped)
 
         st.markdown(
@@ -195,8 +194,8 @@ if start and uploaded:
             f"padding:18px 20px;margin:16px 0;'>"
             f"<div style='font-weight:700;color:#065F46;font-size:15px;'>翻訳完了</div>"
             f"<div style='margin-top:6px;color:#047857;font-size:13px;'>"
-            f"全{total_pages}ページ中、{translated_count}ページを翻訳しました"
-            f"（{skipped_count}ページは著作権・目次等で省略）"
+            f"著作権・索引等を除いた {translated_count} ページを翻訳しました"
+            f"（全 {total_pages} ページ）"
             f"</div></div>",
             unsafe_allow_html=True,
         )
