@@ -1,28 +1,53 @@
 # 洋書翻訳システム
 
-英語書籍PDFを章ごとにサマリ付きで日本語訳PDFに変換するWebアプリ。
+英語書籍PDFをページ単位で日本語訳PDFに変換するStreamlit製Webアプリ。
 
-## ステータス
+## 概要
 
-**✅ Phase 1 (MVP) 完成済み** - ローカルで動作確認可能。
+| 項目 | 内容 |
+|------|------|
+| 用途 | 英語書籍PDF → 日本語訳PDF |
+| 翻訳エンジン | Gemini 2.5 Flash（有料枠想定） |
+| インフラ | Python + Streamlit / Streamlit Community Cloud |
+| 認証 | ベーシック認証（共有パスワード） |
+| 課金モデル | BYOK（APIキーは利用者負担） |
 
-## 起動方法（Makiさん用）
+## 機能
 
-ターミナルで以下を実行：
+- **ページ単位で並列翻訳**（並列5）
+- 章タイトル・見出しの自動強調表示（マークダウン解析）
+- 著作権ページ・索引・出版社情報の自動スキップ
+- 元PDFのページ番号を日本語訳PDFに併記
+- 翻訳履歴の管理（SQLite）と一括削除
+- パスワード保護されたWeb UI
+
+## 公開URL
+
+`https://foreign-book-translator.streamlit.app`
+
+（パスワード認証あり）
+
+## 起動方法
+
+### ローカル開発
 
 ```bash
-cd /Users/ym/CC/gcg/洋書翻訳システム
+cd /path/to/洋書翻訳システム
 source .venv/bin/activate
 streamlit run app.py
 ```
 
-ブラウザが自動で開きます（http://localhost:8501）。
+ブラウザで `http://localhost:8501` が自動で開く。
+
+### Streamlit Cloud 環境
+
+GitHub `main` ブランチに push → 自動で再デプロイ。
+APIキー・パスワードは Streamlit Cloud の Secrets で管理。
 
 ## 使い方
 
-1. **設定ページ**でGemini APIキーを入力
-   - キーは [aistudio.google.com/apikey](https://aistudio.google.com/apikey) で取得
-2. **メインページ**でPDFをドラッグ＆ドロップ
+1. URLにアクセス → パスワード入力
+2. メインページでPDFをドラッグ＆ドロップ
 3. 「翻訳開始」ボタンクリック
 4. 完了後、翻訳済みPDFをダウンロード
 
@@ -30,45 +55,46 @@ streamlit run app.py
 
 ```
 洋書翻訳システム/
-├── app.py                  Streamlitエントリーポイント
-├── requirements.txt        Python依存パッケージ
-├── .venv/                  仮想環境
-├── core/                   コアロジック
-│   ├── llm_clients.py      Geminiクライアント（Phase2でOpenAI/Claude追加予定）
-│   ├── pdf_extractor.py    PyMuPDFでテキスト抽出
-│   ├── chapter_detector.py LLM経由で章検出
-│   ├── translator.py       翻訳本体（5並列）
-│   └── pdf_generator.py    日本語PDFを生成（ReportLab + 内蔵CJKフォント）
+├── app.py                       Streamlitエントリーポイント（翻訳ページ）
+├── main.py                      app.py への薄いラッパー
+├── requirements.txt             Python依存パッケージ
+├── .streamlit/
+│   ├── config.toml              テーマ・アップロード上限
+│   └── secrets.toml.example     Secrets設定の見本
+├── core/                        コアロジック
+│   ├── llm_clients.py           Geminiクライアント（リトライ・スロットリング）
+│   ├── pdf_extractor.py         PyMuPDFでテキスト抽出
+│   ├── translator.py            ページ単位翻訳（並列・チャンク分割）
+│   └── pdf_generator.py         日本語PDFを生成（ReportLab + 内蔵CJKフォント）
 ├── storage/
-│   └── jobs.py             SQLiteジョブ管理
-├── pages/                  Streamlitサブページ
-│   ├── 1_⚙️_設定.py
-│   └── 2_📊_履歴.py
-├── data/                   実行時生成データ（.gitignore対象）
-│   ├── jobs.db
-│   ├── uploads/
-│   └── outputs/
+│   └── jobs.py                  SQLiteジョブ管理
+├── pages/                       Streamlitサブページ
+│   ├── shared_state.py          ページ間共通ステート
+│   ├── 1_⚙️_設定.py             翻訳設定・APIテスト
+│   └── 2_📊_履歴.py             翻訳ジョブ履歴
+├── ui/
+│   ├── theme.py                 共通CSSテーマ・ナビゲーション
+│   ├── auth.py                  ベーシック認証
+│   └── keyboard.py              Streamlit標準ショートカット無効化
+├── data/                        実行時生成データ（.gitignore対象）
 └── docs/
     ├── 要件定義.md
-    └── claude_code_prompt.md  Phase 2/3の指示書
+    └── claude_code_prompt.md
 ```
-
-## 動作確認済み
-
-- ✅ 全モジュール インポート成功
-- ✅ Streamlit 起動成功
-- ✅ ReportLab 日本語PDF生成成功
 
 ## 設計の特徴
 
-- **章検出はLLM任せ**（正規表現は使わない）→ 書籍のフォーマット差に強い
-- **3段階フォールバック** で「常に何かしらの結果」を保証
-- **5並列翻訳** で高速化
-- **CIDフォント** 使用でフォントファイル不要
+- **ページ単位の翻訳**：章検出に頼らず、PDFのページごとに翻訳して構造を維持
+- **3段階のエラー対応**：APIエラー時の自動リトライ＋待機（429・502・503等）
+- **本文外ページの自動スキップ**：著作権・索引・装飾ページをLLMが判定して除外
+- **CIDフォント使用**：日本語フォントファイルの同梱不要
+- **BYOK（Bring Your Own Key）**：管理者がStreamlit SecretsにAPIキー設定。利用者は意識しない
 
-## Phase 2/3（今後）
+## 今後の拡張
 
-- Phase 2: 認証＋マルチユーザー＋OpenAI/Claude対応
-- Phase 3: 商品化・Streamlit Cloudデプロイ
+- マルチユーザー認証（ID/パスワード方式）
+- OpenAI / Claude 等の他LLMプロバイダー対応
+- カスタムドメイン・ブランディング機能
+- 顧客向けセットアップツール・SaaS化
 
-詳細は [docs/claude_code_prompt.md](docs/claude_code_prompt.md)
+詳細は [docs/要件定義.md](docs/要件定義.md) を参照。
