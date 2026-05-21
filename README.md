@@ -21,12 +21,6 @@
 - 翻訳履歴の管理（SQLite）と一括削除
 - パスワード保護されたWeb UI
 
-## 公開URL
-
-`https://foreign-book-translator.streamlit.app`
-
-（パスワード認証あり）
-
 ## 起動方法
 
 ### ローカル開発
@@ -43,6 +37,13 @@ streamlit run app.py
 
 GitHub `main` ブランチに push → 自動で再デプロイ。
 APIキー・パスワードは Streamlit Cloud の Secrets で管理。
+
+設定例：
+
+```toml
+APP_PASSWORD = "任意のパスワード"
+GEMINI_API_KEY = "AIza..."
+```
 
 ## 使い方
 
@@ -76,16 +77,13 @@ APIキー・パスワードは Streamlit Cloud の Secrets で管理。
 │   ├── theme.py                 共通CSSテーマ・ナビゲーション
 │   ├── auth.py                  ベーシック認証
 │   └── keyboard.py              Streamlit標準ショートカット無効化
-├── data/                        実行時生成データ（.gitignore対象）
-└── docs/
-    ├── 要件定義.md
-    └── claude_code_prompt.md
+└── data/                        実行時生成データ（.gitignore対象）
 ```
 
 ## 設計の特徴
 
 - **ページ単位の翻訳**：章検出に頼らず、PDFのページごとに翻訳して構造を維持
-- **3段階のエラー対応**：APIエラー時の自動リトライ＋待機（429・502・503等）
+- **エラー時の自動リトライ**：429・502・503等の一時的なエラーを自動的にリトライ
 - **本文外ページの自動スキップ**：著作権・索引・装飾ページをLLMが判定して除外
 - **CIDフォント使用**：日本語フォントファイルの同梱不要
 - **BYOK（Bring Your Own Key）**：管理者がStreamlit SecretsにAPIキー設定。利用者は意識しない
@@ -95,6 +93,3 @@ APIキー・パスワードは Streamlit Cloud の Secrets で管理。
 - マルチユーザー認証（ID/パスワード方式）
 - OpenAI / Claude 等の他LLMプロバイダー対応
 - カスタムドメイン・ブランディング機能
-- 顧客向けセットアップツール・SaaS化
-
-詳細は [docs/要件定義.md](docs/要件定義.md) を参照。
