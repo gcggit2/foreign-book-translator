@@ -86,8 +86,8 @@ class GeminiClient:
                     wait = _parse_retry_delay(err_str) or min(30 * (attempt + 1), 90)
                     time.sleep(wait + 1)  # 少し余裕を持たせる
                     continue
-                # サーバー一時障害 (5xx)
-                if "503" in msg or "500" in msg or "504" in msg:
+                # サーバー一時障害 (5xx) - 500, 502, 503, 504 すべて対象
+                if any(code in err_str for code in ["500", "502", "503", "504", "Bad Gateway", "Service Unavailable"]):
                     wait = min(2 ** attempt * 3, 60)
                     time.sleep(wait)
                     continue
