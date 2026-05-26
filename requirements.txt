@@ -3,3 +3,8 @@ pymupdf>=1.24.0
 google-genai>=0.3.0
 reportlab>=4.2.0
 python-dotenv>=1.0.0
+extra-streamlit-components>=0.1.71
+# Google Drive 連携用（Phase: 翻訳済PDFの永続化）
+google-api-python-client>=2.130.0
+google-auth>=2.30.0
+google-auth-httplib2>=0.2.0

@@ -8,6 +8,7 @@ from pathlib import Path
 
 import streamlit as st
 
+from core import drive_storage
 from core.llm_clients import GeminiClient
 from core.pdf_extractor import extract_pdf
 from core.pdf_generator import generate_pdf
@@ -179,20 +180,38 @@ if start and uploaded:
             },
         )
 
-        # 4. 完了
+        # 4. Google Drive へアップロード（成功したPDFのみ永続保存）
+        drive_uploaded = False
+        if drive_storage.is_available():
+            try:
+                status_box.info("Google Drive に保存中…")
+                progress.progress(98, text="Google Drive 保存中…")
+                # Driveでの並び順用にタイムスタンプを先頭に付与
+                ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+                drive_filename = f"{ts}_{book_title}_日本語訳.pdf"
+                drive_storage.upload_pdf(output_path, drive_filename)
+                drive_uploaded = True
+            except Exception as drive_err:
+                # Driveアップロード失敗はジョブ全体のエラーにしない（ローカル保存はある）
+                st.warning(
+                    f"Google Driveへの保存に失敗しました（ローカル保存は成功）: {drive_err}"
+                )
+
+        # 5. 完了
         jobs.update_job(job_id, status=jobs.STATUS_DONE, output_path=str(output_path))
         progress.progress(100, text="完了")
         status_box.empty()
 
         st.divider()
 
+        drive_msg = "Google Drive に自動保存しました。" if drive_uploaded else ""
         st.markdown(
             "<div style='background:#ECFDF5;border:1px solid #A7F3D0;"
             "border-left:3px solid #047857;border-radius:2px;"
             "padding:18px 20px;margin:16px 0;'>"
             "<div style='font-weight:700;color:#065F46;font-size:15px;'>翻訳完了</div>"
             "<div style='margin-top:6px;color:#047857;font-size:13px;'>"
-            "下のボタンから日本語訳PDFをダウンロードしてください。"
+            f"下のボタンから日本語訳PDFをダウンロードしてください。{drive_msg}"
             "</div></div>",
             unsafe_allow_html=True,
         )
