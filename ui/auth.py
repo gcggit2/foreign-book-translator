@@ -30,9 +30,12 @@ def _make_token(password: str) -> str:
     return hashlib.sha256(f"fbt-auth-v1-{password}".encode()).hexdigest()
 
 
-@st.cache_resource
 def _get_cookie_manager() -> stx.CookieManager:
-    """CookieManager（プロセス共通インスタンス）"""
+    """CookieManager を取得（ページ毎に新規作成・キャッシュ禁止）
+
+    @st.cache_resource を付けるとウィジェット内部の生成と衝突して
+    CachedWidgetWarning が出るため、毎回新規生成する。
+    """
     return stx.CookieManager(key="fbt_auth_cookie_mgr")
 
 
