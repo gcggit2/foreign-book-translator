@@ -31,12 +31,52 @@ class DriveFile:
     web_view_link: str
 
 
+def _load_service_account_info() -> dict | None:
+    """Streamlit Secrets からサービスアカウント情報を取得（複数形式対応）
+
+    対応する形式:
+      1. TOMLセクション [gdrive_service_account] でフィールド分割
+      2. GDRIVE_SERVICE_ACCOUNT_JSON にJSON文字列で格納
+    """
+    # 形式1: TOMLセクション
+    try:
+        section = st.secrets.get("gdrive_service_account", None)
+        if section:
+            return dict(section)
+    except Exception:
+        pass
+
+    # 形式2: JSON文字列 or dict
+    try:
+        sa_value = st.secrets.get("GDRIVE_SERVICE_ACCOUNT_JSON", None)
+    except Exception:
+        return None
+    if not sa_value:
+        return None
+
+    if isinstance(sa_value, dict):
+        return dict(sa_value)
+    if isinstance(sa_value, str):
+        try:
+            return json.loads(sa_value)
+        except json.JSONDecodeError as e:
+            raise RuntimeError(
+                "GDRIVE_SERVICE_ACCOUNT_JSON のJSON解析に失敗しました。"
+                "Streamlit Secretsで `\"\"\"` ではなく `'''` で囲むか、"
+                "TOMLセクション形式 [gdrive_service_account] で記述してください。"
+                f" 原因: {e}"
+            ) from e
+    return None
+
+
 def is_available() -> bool:
     """Drive連携が設定済みか判定"""
     try:
-        sa = st.secrets.get("GDRIVE_SERVICE_ACCOUNT_JSON", None)
         folder = st.secrets.get("GDRIVE_FOLDER_ID", None)
-        return bool(sa) and bool(folder)
+        if not folder:
+            return False
+        sa_info = _load_service_account_info()
+        return sa_info is not None
     except Exception:
         return False
 
@@ -47,13 +87,9 @@ def _get_service():
     from google.oauth2 import service_account
     from googleapiclient.discovery import build
 
-    sa_json_str = st.secrets["GDRIVE_SERVICE_ACCOUNT_JSON"]
-    # Secrets画面で値だけ書く場合、文字列のまま入る。JSON文字列としてパース。
-    if isinstance(sa_json_str, str):
-        sa_info = json.loads(sa_json_str)
-    else:
-        # dict形式で入っている場合も許容
-        sa_info = dict(sa_json_str)
+    sa_info = _load_service_account_info()
+    if sa_info is None:
+        raise RuntimeError("サービスアカウント情報が未設定です")
     creds = service_account.Credentials.from_service_account_info(sa_info, scopes=SCOPES)
     return build("drive", "v3", credentials=creds, cache_discovery=False)
 
