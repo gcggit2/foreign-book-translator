@@ -18,15 +18,14 @@ _BLOCKER_JS = """
     doc.addEventListener('keydown', function(e) {
         // 対象キー以外はスルー
         if (e.key !== 'c' && e.key !== 'C' && e.key !== 'r' && e.key !== 'R') return;
-        // 修飾キー付き（Cmd+C コピー, Ctrl+R リロード 等）は通常動作
-        if (e.metaKey || e.ctrlKey || e.altKey) return;
-        // 入力欄ではブロックしない
+        // 入力欄ではブロックしない（通常のコピー/編集を許可）
         var active = doc.activeElement;
         if (active) {
             var tag = (active.tagName || '').toLowerCase();
             if (tag === 'input' || tag === 'textarea' || active.isContentEditable) return;
         }
-        // それ以外（素のCキー等）はStreamlitに渡さない
+        // Streamlitのキーバインドだけ無効化（preventDefault は呼ばないので
+        // ブラウザネイティブのコピー/リロード等のデフォルト動作は維持される）
         e.stopImmediatePropagation();
     }, true);
 })();
