@@ -144,7 +144,14 @@ def _render_password_form(expected: str, cookie_mgr: stx.CookieManager, expected
                 max_age=COOKIE_TTL_DAYS * 24 * 60 * 60,
                 key="auth_cookie_set",
             )
-            st.rerun()
+            # Cookie がブラウザに保存されるまで1秒待ってからフルリロード
+            # （st.rerun()だと即時すぎてCookieが書き込まれないまま再実行される）
+            st.markdown(
+                '<meta http-equiv="refresh" content="1">',
+                unsafe_allow_html=True,
+            )
+            st.success("ログインしました。画面を更新中…")
+            st.stop()
         else:
             st.error("パスワードが正しくありません")
 
