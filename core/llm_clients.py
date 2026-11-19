@@ -33,7 +33,12 @@ class GeminiClient:
     def __init__(self, api_key: str):
         if not api_key:
             raise ValueError("Gemini APIキーが指定されていません")
-        self.client = genai.Client(api_key=api_key)
+        # google-genai 3.0（2026-11）から既定のAPIバージョンが v1 に変わり、
+        # v1 では JSON モード（response_mime_type）が使えないため v1beta を明示する
+        self.client = genai.Client(
+            api_key=api_key,
+            http_options=types.HttpOptions(api_version="v1beta"),
+        )
 
     def generate(
         self,
